@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="gl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voces Nós</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --card: #fff; --txt: #1d2026; --sub: #5f6672; --borde: #dde1e6;
+    --pri: #0b74c4; --pri-txt: #fff; --ok: #2e7d32; --err: #c62828; --barra: #e3e7ec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111418; --card: #1b1f25; --txt: #e6e8eb; --sub: #9aa3ae; --borde: #2c323a;
+      --pri: #4ea3e6; --pri-txt: #0b0d10; --ok: #66bb6a; --err: #ef5350; --barra: #2c323a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--txt); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 920px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 1.4em; margin: 4px 0 2px; }
+  h2 { font-size: 1.1em; margin: 0 0 10px; }
+  .sub { color: var(--sub); font-size: .9em; }
+  section { background: var(--card); border: 1px solid var(--borde); border-radius: 12px; padding: 16px; margin: 14px 0; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--borde); vertical-align: middle; }
+  th { color: var(--sub); font-weight: 500; font-size: .85em; }
+  tr:last-child td { border-bottom: 0; }
+  button, .btn { font: inherit; font-weight: 500; border: 0; border-radius: 8px; padding: 7px 14px; cursor: pointer; background: var(--pri); color: var(--pri-txt); }
+  button.sec { background: transparent; color: var(--pri); border: 1px solid var(--borde); }
+  button.peligro { background: transparent; color: var(--err); border: 1px solid var(--borde); }
+  button:disabled { opacity: .5; cursor: default; }
+  input, select, textarea { font: inherit; color: var(--txt); background: var(--bg); border: 1px solid var(--borde); border-radius: 8px; padding: 7px 9px; width: 100%; }
+  textarea { font-family: ui-monospace, Consolas, monospace; font-size: .9em; min-height: 140px; resize: vertical; }
+  label { display: block; font-size: .85em; color: var(--sub); margin: 8px 0 3px; }
+  .fila { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; }
+  .fila > * { flex: 1 1 180px; }
+  .fila > button { flex: 0 0 auto; }
+  .chip { display: inline-block; font-size: .8em; padding: 1px 8px; border-radius: 10px; border: 1px solid var(--borde); color: var(--sub); }
+  .chip.ok { color: var(--ok); border-color: var(--ok); }
+  .chip.err { color: var(--err); border-color: var(--err); }
+  .acciones { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+  .barra { height: 8px; background: var(--barra); border-radius: 4px; overflow: hidden; margin-top: 6px; }
+  .barra > div { height: 100%; background: var(--pri); width: 0; transition: width .4s; }
+  .tarea { padding: 8px 0; border-bottom: 1px solid var(--borde); }
+  .tarea:last-child { border-bottom: 0; }
+  .msg { font-size: .9em; margin-top: 8px; min-height: 1.2em; }
+  .msg.err { color: var(--err); }
+  .msg.ok { color: var(--ok); }
+  .catalogo { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-bottom: 12px; }
+  .cat { border: 1px solid var(--borde); border-radius: 10px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  details summary { cursor: pointer; color: var(--pri); margin-top: 6px; }
+  a { color: var(--pri); }
+  .caja { background: var(--card); border: 1px solid var(--borde); border-radius: 12px; margin: 14px 0; overflow: hidden; }
+  .tabs { display: flex; gap: 2px; padding: 0 8px; border-bottom: 1px solid var(--borde); overflow-x: auto; }
+  .tabs button { background: transparent; color: var(--sub); border-radius: 0; border-bottom: 2px solid transparent; padding: 12px 14px 10px; white-space: nowrap; }
+  .tabs button:hover { color: var(--txt); }
+  .tabs button[aria-selected="true"] { color: var(--pri); border-bottom-color: var(--pri); }
+  .caja section { background: transparent; border: 0; border-radius: 0; margin: 0; }
+  .caja section + section { border-top: 1px solid var(--borde); }
+  .punto { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--pri); vertical-align: middle; }
+  [hidden] { display: none !important; }
+  .cabecera { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+  select.motor { width: auto; padding: 4px 8px; font-size: .9em; }
+  .cabecera select { width: auto; padding: 4px 8px; font-size: .9em; }
+  @media (max-width: 600px) { .ocultar-movil { display: none; } .tabs button { padding: 9px 10px; } }
+</style>
+</head>
+<body>
+<main>
+  <div class="cabecera">
+    <div>
+      <h1>Voces Nós</h1>
+      <div class="sub"><span data-i18n="subtitulo"></span> · <span id="version"></span> · <span id="libre"></span></div>
+    </div>
+    <select id="idioma" aria-label="Idioma / Language">
+      <option value="gl">Galego</option>
+      <option value="es">Castellano</option>
+      <option value="en">English</option>
+    </select>
+  </div>
+
+  <div class="caja">
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="voces" data-i18n="tab_voces"></button>
+    <button role="tab" data-tab="instalar"><span data-i18n="tab_instalar"></span> <span class="punto" id="punto-instalar" hidden></span></button>
+    <button role="tab" data-tab="probar" data-i18n="tab_probar"></button>
+    <button role="tab" data-tab="config" data-i18n="tab_config"></button>
+  </nav>
+
+  <div class="panel" id="tab-voces">
+  <section>
+    <h2 data-i18n="voces_instaladas"></h2>
+    <table>
+      <thead><tr><th data-i18n="col_voz"></th><th data-i18n="col_idioma"></th><th class="ocultar-movil" data-i18n="col_tamano"></th><th data-i18n="col_estado"></th><th data-i18n="col_motor"></th><th></th></tr></thead>
+      <tbody id="voces"><tr><td colspan="6" class="sub" data-i18n="cargando"></td></tr></tbody>
+    </table>
+    <div class="msg ok" id="v-msg"></div>
+    <div class="msg sub" data-i18n-html="nota_voces"></div>
+  </section>
+
+  <section>
+    <h2 data-i18n="idiomas"></h2>
+    <label style="display:flex;gap:8px;align-items:center;cursor:pointer">
+      <input type="checkbox" id="idioma-ha" style="width:auto"> <span data-i18n="idioma_ha"></span>
+    </label>
+    <div class="sub" id="idioma-ha-ayuda" style="margin-top:6px"></div>
+  </section>
+
+  </div>
+
+  <div class="panel" id="tab-instalar" hidden>
+  <section>
+    <h2 data-i18n="instalar_hf"></h2>
+    <div class="catalogo" id="catalogo"></div>
+    <details>
+      <summary data-i18n="otro_repo"></summary>
+      <div class="fila">
+        <div><label for="repo" data-i18n="repo"></label><input id="repo" placeholder="proxectonos/Nos_TTS-brais-vits-graphemes"></div>
+        <div><label for="nombre" data-i18n="nombre_voz"></label><input id="nombre" placeholder="brais"></div>
+        <button id="instalar-otro" data-i18n="instalar"></button>
+      </div>
+    </details>
+    <label for="token" data-i18n="token"></label>
+    <input id="token" type="password" autocomplete="off" placeholder="hf_…">
+    <div class="sub" style="margin-top:6px" data-i18n-html="token_ayuda"></div>
+    <div id="tareas"></div>
+  </section>
+
+  <section>
+    <h2 data-i18n="subir_voz"></h2>
+    <div class="sub" data-i18n-html="subir_ayuda"></div>
+    <div class="fila">
+      <div><label for="s-nombre" data-i18n="nombre"></label><input id="s-nombre" placeholder="minha_voz"></div>
+      <div><label for="s-desc" data-i18n="descripcion"></label><input id="s-desc" placeholder="Minha voz (muller)"></div>
+    </div>
+    <div class="fila">
+      <div><label for="s-pth" data-i18n="modelo"></label><input id="s-pth" type="file" accept=".pth"></div>
+      <div><label for="s-cfg">config.json</label><input id="s-cfg" type="file" accept=".json"></div>
+      <button id="subir" data-i18n="subir"></button>
+    </div>
+    <div class="barra" id="s-barra" hidden><div></div></div>
+    <div class="msg" id="s-msg"></div>
+  </section>
+
+  </div>
+
+  <div class="panel" id="tab-probar" hidden>
+  <section>
+    <h2 data-i18n="tab_probar"></h2>
+    <div class="fila">
+      <div style="flex:0 1 200px"><label for="p-voz" data-i18n="col_voz"></label><select id="p-voz"></select></div>
+      <div style="flex:3 1 300px"><label for="p-texto" data-i18n="texto"></label><input id="p-texto" value="Benvidos. Isto é unha proba da voz en galego."></div>
+      <button id="probar" data-i18n="escuchar"></button>
+    </div>
+    <div class="msg" id="p-msg"></div>
+  </section>
+
+  </div>
+
+  <div class="panel" id="tab-config" hidden>
+  <section>
+    <h2 data-i18n="diccionario"></h2>
+    <div class="sub" data-i18n-html="diccionario_ayuda"></div>
+    <textarea id="t-pronuncia" spellcheck="false"></textarea>
+    <div class="fila" style="margin-top:8px"><div class="msg" id="m-pronuncia"></div><button data-guardar="pronuncia" data-i18n="guardar"></button></div>
+  </section>
+
+  <section>
+    <h2 data-i18n="ajustes"></h2>
+    <div class="sub" data-i18n-html="ajustes_ayuda"></div>
+    <textarea id="t-ajustes" spellcheck="false"></textarea>
+    <div class="fila" style="margin-top:8px"><div class="msg" id="m-ajustes"></div><button data-guardar="ajustes" data-i18n="guardar"></button></div>
+    <div class="sub" data-i18n-html="ajustes_defecto"></div>
+  </section>
+  </div>
+  </div>
+</main>
+
+<script>
+// ---------- Idiomas ----------
+// Textos de la página en galego, castellano e inglés. Las claves de "e" son los códigos de
+// error y de progreso que manda el servidor (server.py, clase Fallo).
+const I18N = {
+  gl: {
+    subtitulo: "Voces galegas do Proxecto Nós para Home Assistant",
+    libres: "{x} libres en /share",
+    tab_voces: "Voces", tab_instalar: "Instalar", tab_probar: "Probar", tab_config: "Pronuncia e axustes",
+    voces_instaladas: "Voces instaladas",
+    col_voz: "Voz", col_idioma: "Lingua", col_tamano: "Tamaño", col_estado: "Estado",
+    cargando: "Cargando…",
+    por_defecto: "por defecto", activa: "activa", sin_cargar: "sen cargar", error: "erro",
+    usar_defecto: "Usar por defecto", probar: "Probar", borrar: "Borrar",
+    col_motor: "Motor", motor_onnx: "ONNX (rápido)", motor_ayuda: "ONNX xera o audio uns dúas veces máis rápido. A primeira frase despois de activalo tarda máis (convirte a voz).",
+    aviso_motor: "{v}: motor {x}.",
+    sin_voces: 'Non hai voces. Instálaas na lapela <a href="#instalar">Instalar</a>.',
+    nota_voces: "A voz por defecto é a que se usa cando Home Assistant non pide ningunha en concreto. Ao instalar ou borrar voces, a integración <b>Wyoming</b> deste complemento recárgase soa para que Home Assistant vexa os cambios.",
+    idiomas: "Idiomas", idioma_voz: "idioma",
+    idioma_ha: "Declarar tamén o idioma de Home Assistant",
+    idioma_ha_ayuda: "Idiomas que ve Home Assistant: <b>{x}</b>. As voces só falan o seu idioma (o da súa ficha <code>voz.json</code>, campo <code>idioma</code>; por defecto <code>gl</code>). Engadir o de Home Assistant ({h}) só serve para que o formulario de <i>Multimedia &gt; Texto a voz</i> amose o selector de voces: ese formulario só preselecciona un idioma que coincida co do sistema.",
+    sin_idioma_ha: "descoñecido",
+    aviso_idiomas: "Idiomas actualizados.", wyoming_ok: " Recargouse a integración Wyoming.", wyoming_mal: " Non se puido recargar a integración Wyoming: recárgaa a man.",
+    aviso_defecto: "Voz por defecto: {x}.", cache_vaciada: " Baleirouse a caché de Home Assistant.",
+    confirmar_borrar: 'Borrar a voz "{x}"? Elimínanse os seus ficheiros de /share.',
+    instalar_hf: "Instalar desde Hugging Face",
+    restringido: "Acceso restrinxido (precisa token)", libre: "Acceso libre",
+    instalando: "Instalando…", reinstalar: "Reinstalar", instalar: "Instalar",
+    otro_repo: "Outro repositorio", repo: "Repositorio (usuario/modelo)", nombre_voz: "Nome da voz",
+    token: "Token de Hugging Face (só para modelos con acceso restrinxido, como Celtia)",
+    token_ayuda: 'Primeiro acepta as condicións do modelo en Hugging Face coa túa conta. Despois crea un token de tipo <i>Read</i> en <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener">huggingface.co/settings/tokens</a>. O token só se usa para esa descarga e non se garda.',
+    de: "de",
+    subir_voz: "Subir unha voz",
+    subir_ayuda: "Un modelo Coqui VITS: o ficheiro <code>.pth</code> e o seu <code>config.json</code>.",
+    nombre: "Nome", descripcion: "Descrición", modelo: "Modelo (.pth)", subir: "Subir",
+    subir_faltan: "Pon un nome e escolle o .pth e o config.json.",
+    subiendo: "Subindo…", cargando_voz: " · cargando a voz…", voz_instalada: "Voz instalada.",
+    subida_cortada: "Cortouse a subida. Con ficheiros moi grandes, usa a instalación desde Hugging Face ou cópiaos a /share/nos_tts/<nome>/ e reinicia o complemento.",
+    texto: "Texto", escuchar: "▶ Escoitar",
+    sin_voz_activa: "Non hai ningunha voz activa.", generando: "Xerando…",
+    generado: "Xerado en {x} s", descargar: "⬇ Descargar",
+    diccionario: "Dicionario de pronuncia",
+    diccionario_ayuda: "Unha liña por palabra: <code>palabra = como se debe ler</code>. Aplícase a palabras completas, sen distinguir maiúsculas.",
+    guardar: "Gardar",
+    guardado: "Gardado. Aplícase na seguinte locución", guardado_cache: " (baleirouse a caché de Home Assistant).",
+    ajustes: "Axustes",
+    ajustes_ayuda: "<code>voz.clave = valor</code> (só esa voz) ou <code>clave = valor</code> (todas). Claves: <code>ruido</code> (0.5), <code>ruido_duracion</code> (0.3), <code>velocidad</code> (1; máis de 1 = máis rápido), <code>semilla</code> (1234), <code>motor</code> (torch; <code>onnx</code> = experimental, o dobre de rápido).",
+    ajustes_defecto: "Clave especial: <code>defecto = nome</code> (voz por defecto; tamén se cambia desde a lapela Voces). Ao gardar, baléirase a caché de TTS de Home Assistant para que as frases xa xeradas se oian cos cambios.",
+    genero_f: "muller", genero_m: "home",
+    e: {
+      empezando: "Comezando…", consultando: "Consultando o repositorio…", descargando: "Descargando {archivo}…",
+      cargando: "Cargando a voz…", instalada: "Instalada", error: "Erro: {detalle}",
+      sin_voces: "Non hai ningunha voz instalada", token_no_valido: "Token non válido",
+      repo_no_encontrado: "Non se atopa o repositorio {repo} ({status})",
+      repo_sin_modelo: "O repositorio non ten un modelo .pth e o seu config.json",
+      restringido: "Acceso restrinxido: acepta as condicións do modelo en Hugging Face coa túa conta e pon aquí un token de lectura desa conta",
+      error_descarga: "Erro {status} ao descargar {archivo}", sin_espacio: "Non hai espazo abondo en /share",
+      no_carga: "Gardada, pero o modelo non carga: {detalle}", repo_no_valido: "Repositorio ou nome non válido",
+      instalando_ya: "Xa se está a instalar {nombre}", nombre_no_valido: "Nome non válido",
+      falta_nombre: "Falta o nome antes dos ficheiros", faltan_archivos: "Fan falta o modelo (.pth) e o seu config.json",
+      voz_no_existe: "Non existe esa voz", voz_no_activa: "Esa voz non está activa", motor_no_valido: "Motor descoñecido", texto_vacio: "Escribe un texto",
+      solo_ha: "Só accesible desde Home Assistant",
+    },
+  },
+  es: {
+    subtitulo: "Voces gallegas del Proxecto Nós para Home Assistant",
+    libres: "{x} libres en /share",
+    tab_voces: "Voces", tab_instalar: "Instalar", tab_probar: "Probar", tab_config: "Pronuncia y ajustes",
+    voces_instaladas: "Voces instaladas",
+    col_voz: "Voz", col_idioma: "Idioma", col_tamano: "Tamaño", col_estado: "Estado",
+    cargando: "Cargando…",
+    por_defecto: "por defecto", activa: "activa", sin_cargar: "sin cargar", error: "error",
+    usar_defecto: "Usar por defecto", probar: "Probar", borrar: "Borrar",
+    col_motor: "Motor", motor_onnx: "ONNX (rápido)", motor_ayuda: "ONNX genera el audio unas dos veces más rápido. La primera frase después de activarlo tarda más (convierte la voz).",
+    aviso_motor: "{v}: motor {x}.",
+    sin_voces: 'No hay voces. Instálalas en la pestaña <a href="#instalar">Instalar</a>.',
+    nota_voces: "La voz por defecto es la que se usa cuando Home Assistant no pide ninguna en concreto. Al instalar o borrar voces, la integración <b>Wyoming</b> de este complemento se recarga sola para que Home Assistant vea los cambios.",
+    idiomas: "Idiomas", idioma_voz: "idioma",
+    idioma_ha: "Declarar también el idioma de Home Assistant",
+    idioma_ha_ayuda: "Idiomas que ve Home Assistant: <b>{x}</b>. Las voces solo hablan su idioma (el de su ficha <code>voz.json</code>, campo <code>idioma</code>; por defecto <code>gl</code>). Añadir el de Home Assistant ({h}) solo sirve para que el formulario de <i>Multimedia &gt; Texto a voz</i> muestre el selector de voces: ese formulario solo preselecciona un idioma que coincida con el del sistema.",
+    sin_idioma_ha: "desconocido",
+    aviso_idiomas: "Idiomas actualizados.", wyoming_ok: " Integración Wyoming recargada.", wyoming_mal: " No se pudo recargar la integración Wyoming: recárgala a mano.",
+    aviso_defecto: "Voz por defecto: {x}.", cache_vaciada: " Caché de Home Assistant vaciada.",
+    confirmar_borrar: '¿Borrar la voz "{x}"? Se eliminan sus archivos de /share.',
+    instalar_hf: "Instalar desde Hugging Face",
+    restringido: "Acceso restringido (necesita token)", libre: "Acceso libre",
+    instalando: "Instalando…", reinstalar: "Reinstalar", instalar: "Instalar",
+    otro_repo: "Otro repositorio", repo: "Repositorio (usuario/modelo)", nombre_voz: "Nombre de la voz",
+    token: "Token de Hugging Face (solo para modelos con acceso restringido, como Celtia)",
+    token_ayuda: 'Primero acepta las condiciones del modelo en Hugging Face con tu cuenta. Después crea un token de tipo <i>Read</i> en <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener">huggingface.co/settings/tokens</a>. El token solo se usa para esa descarga y no se guarda.',
+    de: "de",
+    subir_voz: "Subir una voz",
+    subir_ayuda: "Un modelo Coqui VITS: el archivo <code>.pth</code> y su <code>config.json</code>.",
+    nombre: "Nombre", descripcion: "Descripción", modelo: "Modelo (.pth)", subir: "Subir",
+    subir_faltan: "Pon un nombre y elige el .pth y el config.json.",
+    subiendo: "Subiendo…", cargando_voz: " · cargando la voz…", voz_instalada: "Voz instalada.",
+    subida_cortada: "Se cortó la subida. Con archivos muy grandes, usa la instalación desde Hugging Face o cópialos a /share/nos_tts/<nombre>/ y reinicia el complemento.",
+    texto: "Texto", escuchar: "▶ Escuchar",
+    sin_voz_activa: "No hay ninguna voz activa.", generando: "Generando…",
+    generado: "Generado en {x} s", descargar: "⬇ Descargar",
+    diccionario: "Diccionario de pronuncia",
+    diccionario_ayuda: "Una línea por palabra: <code>palabra = como se debe leer</code>. Se aplica a palabras completas, sin distinguir mayúsculas.",
+    guardar: "Guardar",
+    guardado: "Guardado. Se aplica en la siguiente locución", guardado_cache: " (caché de Home Assistant vaciada).",
+    ajustes: "Ajustes",
+    ajustes_ayuda: "<code>voz.clave = valor</code> (solo esa voz) o <code>clave = valor</code> (todas). Claves: <code>ruido</code> (0.5), <code>ruido_duracion</code> (0.3), <code>velocidad</code> (1; más de 1 = más rápido), <code>semilla</code> (1234), <code>motor</code> (torch; <code>onnx</code> = experimental, el doble de rápido).",
+    ajustes_defecto: "Clave especial: <code>defecto = nombre</code> (voz por defecto; también se cambia desde la pestaña Voces). Al guardar, se vacía la caché de TTS de Home Assistant para que las frases ya generadas se oigan con los cambios.",
+    genero_f: "mujer", genero_m: "hombre",
+    e: {
+      empezando: "Empezando…", consultando: "Consultando el repositorio…", descargando: "Descargando {archivo}…",
+      cargando: "Cargando la voz…", instalada: "Instalada", error: "Error: {detalle}",
+      sin_voces: "No hay ninguna voz instalada", token_no_valido: "Token no válido",
+      repo_no_encontrado: "No se encuentra el repositorio {repo} ({status})",
+      repo_sin_modelo: "El repositorio no tiene un modelo .pth y su config.json",
+      restringido: "Acceso restringido: acepta las condiciones del modelo en Hugging Face con tu cuenta y pon aquí un token de lectura de esa cuenta",
+      error_descarga: "Error {status} al descargar {archivo}", sin_espacio: "No hay espacio suficiente en /share",
+      no_carga: "Guardada, pero el modelo no carga: {detalle}", repo_no_valido: "Repositorio o nombre no válido",
+      instalando_ya: "Ya se está instalando {nombre}", nombre_no_valido: "Nombre no válido",
+      falta_nombre: "Falta el nombre antes de los archivos", faltan_archivos: "Hacen falta el modelo (.pth) y su config.json",
+      voz_no_existe: "No existe esa voz", voz_no_activa: "Esa voz no está activa", motor_no_valido: "Motor desconocido", texto_vacio: "Escribe un texto",
+      solo_ha: "Solo accesible desde Home Assistant",
+    },
+  },
+  en: {
+    subtitulo: "Galician voices from Proxecto Nós for Home Assistant",
+    libres: "{x} free in /share",
+    tab_voces: "Voices", tab_instalar: "Install", tab_probar: "Try", tab_config: "Pronunciation & settings",
+    voces_instaladas: "Installed voices",
+    col_voz: "Voice", col_idioma: "Language", col_tamano: "Size", col_estado: "Status",
+    cargando: "Loading…",
+    por_defecto: "default", activa: "active", sin_cargar: "not loaded", error: "error",
+    usar_defecto: "Make default", probar: "Try", borrar: "Delete",
+    col_motor: "Engine", motor_onnx: "ONNX (fast)", motor_ayuda: "ONNX generates audio about twice as fast. The first sentence after enabling it takes longer (the voice is converted).",
+    aviso_motor: "{v}: {x} engine.",
+    sin_voces: 'No voices yet. Install them in the <a href="#instalar">Install</a> tab.',
+    nota_voces: "The default voice is used when Home Assistant does not ask for a specific one. When voices are installed or deleted, this add-on's <b>Wyoming</b> integration is reloaded automatically so Home Assistant sees the changes.",
+    idiomas: "Languages", idioma_voz: "language",
+    idioma_ha: "Also declare Home Assistant's language",
+    idioma_ha_ayuda: "Languages Home Assistant sees: <b>{x}</b>. Voices only speak their own language (the <code>idioma</code> field in their <code>voz.json</code>; <code>gl</code> by default). Adding Home Assistant's language ({h}) only makes the <i>Media &gt; Text-to-speech</i> form show the voice selector: that form only preselects a language matching the system language.",
+    sin_idioma_ha: "unknown",
+    aviso_idiomas: "Languages updated.", wyoming_ok: " Wyoming integration reloaded.", wyoming_mal: " Could not reload the Wyoming integration: reload it manually.",
+    aviso_defecto: "Default voice: {x}.", cache_vaciada: " Home Assistant's TTS cache cleared.",
+    confirmar_borrar: 'Delete the voice "{x}"? Its files in /share will be removed.',
+    instalar_hf: "Install from Hugging Face",
+    restringido: "Gated access (needs a token)", libre: "Open access",
+    instalando: "Installing…", reinstalar: "Reinstall", instalar: "Install",
+    otro_repo: "Another repository", repo: "Repository (user/model)", nombre_voz: "Voice name",
+    token: "Hugging Face token (only for gated models, such as Celtia)",
+    token_ayuda: "First accept the model's conditions on Hugging Face with your account. Then create a <i>Read</i> token at <a href=\"https://huggingface.co/settings/tokens\" target=\"_blank\" rel=\"noopener\">huggingface.co/settings/tokens</a>. The token is only used for that download and is not stored.",
+    de: "of",
+    subir_voz: "Upload a voice",
+    subir_ayuda: "A Coqui VITS model: the <code>.pth</code> file and its <code>config.json</code>.",
+    nombre: "Name", descripcion: "Description", modelo: "Model (.pth)", subir: "Upload",
+    subir_faltan: "Enter a name and choose the .pth and the config.json.",
+    subiendo: "Uploading…", cargando_voz: " · loading the voice…", voz_instalada: "Voice installed.",
+    subida_cortada: "The upload was interrupted. For very large files, install from Hugging Face or copy them to /share/nos_tts/<name>/ and restart the add-on.",
+    texto: "Text", escuchar: "▶ Play",
+    sin_voz_activa: "No active voice.", generando: "Generating…",
+    generado: "Generated in {x} s", descargar: "⬇ Download",
+    diccionario: "Pronunciation dictionary",
+    diccionario_ayuda: "One line per word: <code>word = how it should be read</code>. Applies to whole words, case-insensitive.",
+    guardar: "Save",
+    guardado: "Saved. Applies from the next utterance", guardado_cache: " (Home Assistant's TTS cache cleared).",
+    ajustes: "Settings",
+    ajustes_ayuda: "<code>voice.key = value</code> (that voice only) or <code>key = value</code> (all voices). Keys: <code>ruido</code> (noise, 0.5), <code>ruido_duracion</code> (duration noise, 0.3), <code>velocidad</code> (speed, 1; above 1 = faster), <code>semilla</code> (seed, 1234), <code>motor</code> (engine: torch; <code>onnx</code> = experimental, twice as fast).",
+    ajustes_defecto: "Special key: <code>defecto = name</code> (default voice; can also be set from the Voices tab). Saving clears Home Assistant's TTS cache so phrases already generated are heard with the changes.",
+    genero_f: "female", genero_m: "male",
+    e: {
+      empezando: "Starting…", consultando: "Checking the repository…", descargando: "Downloading {archivo}…",
+      cargando: "Loading the voice…", instalada: "Installed", error: "Error: {detalle}",
+      sin_voces: "No voice installed", token_no_valido: "Invalid token",
+      repo_no_encontrado: "Repository {repo} not found ({status})",
+      repo_sin_modelo: "The repository has no .pth model and config.json",
+      restringido: "Gated model: accept its conditions on Hugging Face with your account and enter a read token from that account here",
+      error_descarga: "Error {status} downloading {archivo}", sin_espacio: "Not enough space in /share",
+      no_carga: "Saved, but the model does not load: {detalle}", repo_no_valido: "Invalid repository or name",
+      instalando_ya: "{nombre} is already being installed", nombre_no_valido: "Invalid name",
+      falta_nombre: "The name must come before the files", faltan_archivos: "Both the model (.pth) and its config.json are needed",
+      voz_no_existe: "That voice does not exist", voz_no_activa: "That voice is not active", motor_no_valido: "Unknown engine", texto_vacio: "Write some text",
+      solo_ha: "Only reachable through Home Assistant",
+    },
+  },
+};
+
+// Idioma: el elegido aquí > el de Home Assistant (misma web, localStorage "selectedLanguage") > el del navegador.
+function idiomaInicial() {
+  const leer = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+  const candidatos = [leer("nos_tts_idioma")];
+  try { candidatos.push(JSON.parse(leer("selectedLanguage") || "null")); } catch {}
+  candidatos.push(...(navigator.languages || [navigator.language]));
+  for (const c of candidatos) {
+    const l = String(c || "").toLowerCase().slice(0, 2);
+    if (I18N[l]) return l;
+  }
+  return "en";
+}
+let idioma = idiomaInicial();
+const fmt = (s, p = {}) => String(s).replace(/\{(\w+)\}/g, (_, k) => (p[k] ?? `{${k}}`));
+const t = (k, p) => fmt(I18N[idioma][k] ?? I18N.en[k] ?? k, p);
+const tm = (m) => (m && m.c ? fmt(I18N[idioma].e[m.c] ?? I18N.en.e[m.c] ?? m.c, m.p || {}) : "");
+
+function traducir() {
+  document.documentElement.lang = idioma;
+  for (const el of document.querySelectorAll("[data-i18n]")) el.textContent = t(el.dataset.i18n);
+  for (const el of document.querySelectorAll("[data-i18n-html]")) el.innerHTML = t(el.dataset.i18nHtml);
+  $("#idioma").value = idioma;
+  if (estado) pintar();
+}
+
+// ---------- Página ----------
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const mb = (n) => n >= 1e9 ? (n / 1e9).toFixed(2) + " GB" : (n / 1e6).toFixed(0) + " MB";
+let estado = null, sondeo = null, audio = null;
+
+async function api(metodo, ruta, cuerpo, tipo = "application/json") {
+  // X-Nos-Web: así el servidor sabe que es la página actual (ver api_estado en server.py).
+  const op = { method: metodo, headers: { "X-Nos-Web": "2" } };
+  if (cuerpo !== undefined) {
+    op.body = tipo === "application/json" ? JSON.stringify(cuerpo) : cuerpo;
+    op.headers["Content-Type"] = tipo;
+  }
+  const r = await fetch(ruta, op);
+  if (!r.ok) throw new Error(textoError(r.status, await r.text()));
+  return r;
+}
+
+// El servidor manda {"error": {"c": código, "p": parámetros}}; si no, se muestra el texto tal cual.
+function textoError(status, cuerpo) {
+  try {
+    const j = JSON.parse(cuerpo);
+    if (j && j.error) return tm(j.error);
+  } catch {}
+  return cuerpo || "HTTP " + status;
+}
+
+// Nombre de una voz del catálogo en el idioma elegido: "Celtia (muller / mujer / female)".
+function descripcionVoz(nombre, guardada) {
+  const c = estado && estado.catalogo.find((x) => x.nombre === nombre);
+  if (c && c.genero) return `${nombre.charAt(0).toUpperCase() + nombre.slice(1)} (${t("genero_" + c.genero)})`;
+  return guardada;
+}
+
+// "gl" -> "Gallego" / "Galego" / "Galician", en el idioma de la página.
+function nombreIdioma(codigo) {
+  try {
+    const n = new Intl.DisplayNames([idioma], { type: "language" }).of(String(codigo).replace("_", "-"));
+    return n ? n.charAt(0).toUpperCase() + n.slice(1) : codigo;
+  } catch {
+    return codigo;
+  }
+}
+
+function pintar() {
+  const e = estado;
+  $("#version").textContent = "v" + e.version;
+  $("#libre").textContent = t("libres", { x: mb(e.libre) });
+  $("#voces").innerHTML = e.voces.length ? e.voces.map((v) => `
+    <tr>
+      <td><b>${esc(v.nombre)}</b>${v.defecto ? ` <span class="chip">${t("por_defecto")}</span>` : ""}<div class="sub">${esc(descripcionVoz(v.nombre, v.descripcion))}</div></td>
+      <td>${esc(nombreIdioma(v.idioma))}<div class="sub"><code>${esc(v.idioma)}</code></div></td>
+      <td class="ocultar-movil">${mb(v.tamano)}</td>
+      <td>${v.error ? `<span class="chip err" title="${esc(v.error)}">${t("error")}</span>` : v.cargada ? `<span class="chip ok">${t("activa")}</span>` : `<span class="chip">${t("sin_cargar")}</span>`}</td>
+      <td>${v.cargada ? `<select class="motor" data-motor="${esc(v.nombre)}" title="${t("motor_ayuda")}">
+          <option value="torch" ${v.motor === "torch" ? "selected" : ""}>Torch</option>
+          <option value="onnx" ${v.motor === "onnx" ? "selected" : ""}>${t("motor_onnx")}</option>
+        </select>` : `<span class="sub">${esc(v.motor)}</span>`}</td>
+      <td><div class="acciones">
+        ${!v.defecto && v.cargada ? `<button class="sec" data-defecto="${esc(v.nombre)}">${t("usar_defecto")}</button>` : ""}
+        <button class="sec" data-probar="${esc(v.nombre)}" ${v.cargada ? "" : "disabled"}>${t("probar")}</button>
+        <button class="peligro" data-borrar="${esc(v.nombre)}">${t("borrar")}</button>
+      </div></td>
+    </tr>`).join("") : `<tr><td colspan="6" class="sub">${t("sin_voces")}</td></tr>`;
+  $("#punto-instalar").hidden = !e.ocupado.length;
+
+  $("#idioma-ha").checked = !!e.idioma_ha;
+  const declarados = [...new Set(e.voces.flatMap((v) => v.idiomas || []))];
+  $("#idioma-ha-ayuda").innerHTML = t("idioma_ha_ayuda", {
+    x: esc(declarados.join(", ") || "—"), h: `<code>${esc(e.idioma_sistema || t("sin_idioma_ha"))}</code>` });
+
+  const instaladas = new Set(e.voces.map((v) => v.nombre));
+  $("#catalogo").innerHTML = e.catalogo.map((c) => `
+    <div class="cat">
+      <div><b>${esc(descripcionVoz(c.nombre, c.descripcion))}</b><div class="sub">${c.restringido ? t("restringido") : t("libre")}</div></div>
+      <button data-instalar="${esc(c.repo)}" data-nombre="${esc(c.nombre)}" ${e.ocupado.includes(c.nombre) ? "disabled" : ""}>
+        ${e.ocupado.includes(c.nombre) ? t("instalando") : instaladas.has(c.nombre) ? t("reinstalar") : t("instalar")}</button>
+    </div>`).join("");
+
+  $("#tareas").innerHTML = e.tareas.map((ta) => {
+    const pct = ta.total ? Math.round(100 * ta.hecho / ta.total) : 0;
+    const cls = ta.estado === "error" ? "err" : ta.estado === "ok" ? "ok" : "";
+    return `<div class="tarea"><b>${esc(ta.nombre)}</b> <span class="sub">${esc(ta.repo)}</span>
+      <div class="msg ${cls}">${esc(tm(ta.msg) || ta.mensaje || "")}${ta.estado === "en curso" && ta.total ? ` · ${mb(ta.hecho)} ${t("de")} ${mb(ta.total)} (${pct}%)` : ""}</div>
+      ${ta.estado === "en curso" ? `<div class="barra"><div style="width:${pct}%"></div></div>` : ""}</div>`;
+  }).join("");
+
+  const sel = $("#p-voz"), antes = sel.value;
+  sel.innerHTML = e.voces.filter((v) => v.cargada).map((v) => `<option value="${esc(v.nombre)}">${esc(v.nombre)}</option>`).join("");
+  if ([...sel.options].some((o) => o.value === antes)) sel.value = antes;
+}
+
+function aviso(texto) {
+  const m = $("#v-msg");
+  m.textContent = texto;
+  clearTimeout(aviso.t);
+  aviso.t = setTimeout(() => (m.textContent = ""), 6000);
+}
+
+async function refrescar() {
+  try {
+    estado = await (await api("GET", "api/estado")).json();
+    pintar();
+    clearTimeout(sondeo);
+    if (estado.ocupado.length) sondeo = setTimeout(refrescar, 1000);
+  } catch (err) {
+    $("#voces").innerHTML = `<tr><td colspan="6" class="msg err">${esc(err.message)}</td></tr>`;
+  }
+}
+
+async function instalar(repo, nombre) {
+  try {
+    await api("POST", "api/descargar", { repo, nombre, token: $("#token").value });
+  } catch (err) {
+    alert(err.message);
+  }
+  refrescar();
+}
+
+document.addEventListener("change", async (ev) => {
+  if (ev.target.id === "idioma-ha") {
+    const c = ev.target;
+    c.disabled = true;
+    try {
+      const r = await (await api("POST", "api/idioma_ha", { activo: c.checked })).json();
+      aviso(t("aviso_idiomas") + (r.wyoming_recargado ? t("wyoming_ok") : t("wyoming_mal")));
+    } catch (err) {
+      aviso(err.message);
+    }
+    c.disabled = false;
+    refrescar();
+    return;
+  }
+  const s = ev.target.closest("select[data-motor]");
+  if (!s) return;
+  s.disabled = true;
+  try {
+    const r = await (await api("POST", "api/motor", { nombre: s.dataset.motor, motor: s.value })).json();
+    aviso(t("aviso_motor", { v: s.dataset.motor, x: r.motor === "onnx" ? "ONNX" : "Torch" }) + (r.cache_vaciada ? t("cache_vaciada") : ""));
+    $("#t-ajustes").value = await (await api("GET", "api/texto/ajustes")).text();
+  } catch (err) { alert(err.message); }
+  refrescar();
+});
+
+document.addEventListener("click", async (ev) => {
+  const b = ev.target.closest("button");
+  if (!b) return;
+  if (b.dataset.tab) return mostrar(b.dataset.tab);
+  if (b.dataset.instalar) return instalar(b.dataset.instalar, b.dataset.nombre);
+  if (b.dataset.defecto) {
+    try {
+      const r = await (await api("POST", "api/defecto", { nombre: b.dataset.defecto })).json();
+      aviso(t("aviso_defecto", { x: r.defecto }) + (r.cache_vaciada ? t("cache_vaciada") : ""));
+      $("#t-ajustes").value = await (await api("GET", "api/texto/ajustes")).text();
+    } catch (err) { alert(err.message); }
+    return refrescar();
+  }
+  if (b.dataset.borrar) {
+    if (!confirm(t("confirmar_borrar", { x: b.dataset.borrar }))) return;
+    try { await api("DELETE", "api/voces/" + encodeURIComponent(b.dataset.borrar)); } catch (err) { alert(err.message); }
+    return refrescar();
+  }
+  if (b.dataset.probar) {
+    mostrar("probar");
+    $("#p-voz").value = b.dataset.probar;
+    return probar();
+  }
+  if (b.dataset.guardar) {
+    const cual = b.dataset.guardar, m = $("#m-" + cual);
+    try {
+      const r = await (await api("PUT", "api/texto/" + cual, $("#t-" + cual).value, "text/plain; charset=utf-8")).json();
+      m.className = "msg ok";
+      m.textContent = t("guardado") + (r.cache_vaciada ? t("guardado_cache") : ".");
+      refrescar();
+    } catch (err) { m.className = "msg err"; m.textContent = err.message; }
+  }
+});
+
+$("#idioma").addEventListener("change", () => {
+  idioma = $("#idioma").value;
+  try { localStorage.setItem("nos_tts_idioma", idioma); } catch {}
+  traducir();
+});
+
+$("#instalar-otro").addEventListener("click", () => {
+  const repo = $("#repo").value.trim();
+  if (repo) instalar(repo, $("#nombre").value.trim());
+});
+
+async function probar() {
+  const m = $("#p-msg"), b = $("#probar");
+  if (audio) { audio.pause(); audio = null; }
+  if (!$("#p-voz").value) { m.className = "msg err"; m.textContent = t("sin_voz_activa"); return; }
+  b.disabled = true; m.className = "msg sub"; m.textContent = t("generando");
+  const t0 = performance.now();
+  try {
+    const r = await api("POST", "api/probar", { voz: $("#p-voz").value, texto: $("#p-texto").value });
+    const url = URL.createObjectURL(await r.blob());
+    audio = new Audio(url);
+    await audio.play();
+    m.className = "msg ok";
+    m.innerHTML = `${esc(t("generado", { x: ((performance.now() - t0) / 1000).toFixed(1) }))} · <a href="${url}" download="nos_${esc($("#p-voz").value)}.wav">${esc(t("descargar"))}</a>`;
+  } catch (err) { m.className = "msg err"; m.textContent = err.message; }
+  b.disabled = false;
+}
+$("#probar").addEventListener("click", probar);
+
+$("#subir").addEventListener("click", () => {
+  const m = $("#s-msg"), barra = $("#s-barra"), pth = $("#s-pth").files[0], cfg = $("#s-cfg").files[0];
+  const nombre = $("#s-nombre").value.trim();
+  if (!nombre || !pth || !cfg) { m.className = "msg err"; m.textContent = t("subir_faltan"); return; }
+  const fd = new FormData();
+  fd.append("nombre", nombre);
+  fd.append("descripcion", $("#s-desc").value.trim());
+  fd.append("config", cfg);
+  fd.append("modelo", pth);
+  const x = new XMLHttpRequest();
+  x.open("POST", "api/subir");
+  barra.hidden = false; $("#subir").disabled = true; m.className = "msg sub"; m.textContent = t("subiendo");
+  x.upload.onprogress = (e) => {
+    if (!e.lengthComputable) return;
+    barra.firstElementChild.style.width = (100 * e.loaded / e.total) + "%";
+    m.textContent = `${t("subiendo")} ${mb(e.loaded)} ${t("de")} ${mb(e.total)}` + (e.loaded === e.total ? t("cargando_voz") : "");
+  };
+  x.onload = () => {
+    $("#subir").disabled = false; barra.hidden = true;
+    if (x.status === 200) { m.className = "msg ok"; m.textContent = t("voz_instalada"); }
+    else { m.className = "msg err"; m.textContent = textoError(x.status, x.responseText); }
+    refrescar();
+  };
+  x.onerror = () => {
+    $("#subir").disabled = false; barra.hidden = true;
+    m.className = "msg err";
+    m.textContent = t("subida_cortada");
+  };
+  x.send(fd);
+});
+
+function mostrar(tab) {
+  if (!document.getElementById("tab-" + tab)) tab = "voces";
+  for (const p of document.querySelectorAll(".panel")) p.hidden = p.id !== "tab-" + tab;
+  for (const b of document.querySelectorAll(".tabs button")) b.setAttribute("aria-selected", b.dataset.tab === tab);
+  if (location.hash !== "#" + tab) history.replaceState(null, "", "#" + tab);
+}
+window.addEventListener("hashchange", () => mostrar(location.hash.slice(1)));
+traducir();
+mostrar(location.hash.slice(1));
+
+(async () => {
+  for (const cual of ["pronuncia", "ajustes"]) {
+    try { $("#t-" + cual).value = await (await api("GET", "api/texto/" + cual)).text(); } catch {}
+  }
+  refrescar();
+})();
+</script>
+</body>
+</html>

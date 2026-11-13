@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="gl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voces Nós</title>
+<style>body{font-family:system-ui,sans-serif;background:#f5f6f8;color:#5f6672;margin:24px}@media (prefers-color-scheme:dark){body{background:#111418;color:#9aa3ad}}</style>
+</head>
+<body>
+<noscript>Activa JavaScript / Enable JavaScript.</noscript>
+<p id="cargando">…</p>
+<script>
+// Cargador. Home Assistant muestra esta página dentro de un iframe, y el navegador guarda en
+// caché el documento del iframe aparte del resto. Por eso la página real (app.html) se pide aquí
+// por JavaScript sin caché, igual que los datos: tras actualizar el complemento se ve siempre la
+// versión nueva. Este archivo apenas cambia.
+(function () {
+  fetch("app.html", { cache: "no-store" })
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+    .then(function (html) { document.open(); document.write(html); document.close(); })
+    .catch(function (e) {
+      document.getElementById("cargando").textContent = "Voces Nós: " + e.message + " — recarga a páxina / recarga la página / reload the page.";
+    });
+})();
+</script>
+</body>
+</html>

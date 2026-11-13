@@ -1,0 +1,6 @@
+# Los modelos (~1 GB cada uno) no se suben: se descargan de Hugging Face.
+*.pth
+*.onnx
+*.wav
+*.mp3
+__pycache__/
