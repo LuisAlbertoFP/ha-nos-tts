@@ -1,5 +1,7 @@
 # Nós TTS for Home Assistant
 
+[![Add this repository to your Home Assistant](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2FLuisAlbertoFP%2Fha-nos-tts)
+
 **[English](#english) · [Galego](#galego) · [Castellano](#castellano)**
 
 | Add-on | |
@@ -16,7 +18,11 @@ The voices run **locally, without internet**, and plug into Home Assistant as a 
 
 ### Installation
 
-1. In Home Assistant: **Settings > Add-ons > Add-on store**. In the ⋮ menu choose **Repositories** and add this repository's URL.
+1. Press this button to add the repository to your Home Assistant:
+
+   [![Add this repository to your Home Assistant](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2FLuisAlbertoFP%2Fha-nos-tts)
+
+   Or by hand: **Settings > Add-ons > Add-on store**, ⋮ menu > **Repositories**, and add `https://github.com/LuisAlbertoFP/ha-nos-tts`.
 2. Install **Nós TTS** and start it. The first build takes a while, because it downloads and installs PyTorch.
 3. Open **Voces Nós** in the sidebar and install the voices from there (they are downloaded from Hugging Face). Celtia needs a read token from your Hugging Face account, after accepting its conditions.
 4. Go to **Settings > Devices & services > Add integration > Wyoming Protocol**, with the add-on's host name and port `10200`.
@@ -46,7 +52,11 @@ As voces execútanse **en local, sen internet**, e intégranse en Home Assistant
 
 ### Instalación
 
-1. En Home Assistant: **Axustes > Complementos > Tenda de complementos**. No menú ⋮ escolle **Repositorios** e engade o URL deste repositorio.
+1. Preme este botón para engadir o repositorio ao teu Home Assistant:
+
+   [![Engadir este repositorio ao teu Home Assistant](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2FLuisAlbertoFP%2Fha-nos-tts)
+
+   Ou a man: **Axustes > Complementos > Tenda de complementos**, menú ⋮ > **Repositorios**, e engade `https://github.com/LuisAlbertoFP/ha-nos-tts`.
 2. Instala **Nós TTS** e arríncao. A primeira construción tarda bastante, porque descarga e instala PyTorch.
 3. Abre **Voces Nós** na barra lateral e instala as voces desde alí (descárganse de Hugging Face). Celtia precisa un token de lectura da túa conta de Hugging Face, despois de aceptar as súas condicións.
 4. Vai a **Axustes > Dispositivos e servizos > Engadir integración > Wyoming Protocol**, co host do complemento e o porto `10200`.
@@ -77,7 +87,11 @@ Las voces se ejecutan **en local, sin internet**, y se integran en Home Assistan
 
 ### Instalación
 
-1. En Home Assistant: **Ajustes > Complementos > Tienda de complementos**. En el menú ⋮ elige **Repositorios** y añade la URL de este repositorio.
+1. Pulsa este botón para añadir el repositorio a tu Home Assistant:
+
+   [![Añadir este repositorio a tu Home Assistant](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2FLuisAlbertoFP%2Fha-nos-tts)
+
+   O a mano: **Ajustes > Complementos > Tienda de complementos**, menú ⋮ > **Repositorios**, y añade `https://github.com/LuisAlbertoFP/ha-nos-tts`.
 2. Instala **Nós TTS** y arráncalo. La primera construcción tarda bastante, porque descarga e instala PyTorch.
 3. Abre **Voces Nós** en la barra lateral e instala las voces desde allí (se descargan de Hugging Face). Celtia necesita un token de lectura de tu cuenta de Hugging Face, después de aceptar sus condiciones.
 4. Ve a **Ajustes > Dispositivos y servicios > Añadir integración > Wyoming Protocol**, con el host del complemento y el puerto `10200`.
